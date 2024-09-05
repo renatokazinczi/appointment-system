@@ -35,8 +35,8 @@ jobs:
         github-token: ${{ secrets.DEPLOY_TOKEN }}
     - name: Print Version
       run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
-    - name: Check docker
-      run: docker --version
+    - name: Login to docker hub
+      run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
     - name: Pull Image from docker hub
       run: docker pull renatokazinczi/appointment-system:latest
     - name: Delete old container
