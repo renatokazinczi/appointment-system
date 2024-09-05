@@ -1,0 +1,43 @@
+name: CICD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Build Project
+        run: mvn clean install -DskipTests
+      - name: Login to docker hub
+        run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
+      - name: Build docker image
+        run: docker build -t renatokazinczi/appointment-system .
+      - name: Publish image to docker hub
+        run: docker push renatokazinczi/appointment-system:latest
+
+  deploy:
+    needs: build
+    runs-on: [appointment-system-ec2]
+    steps:
+    - name: Bump Version
+      id: bump
+      uses: nnichols/maven-version-bump-action@v3
+      with:
+        github-token: ${{ secrets.DEPLOY_TOKEN }}
+    - name: Print Version
+      run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
+    - name: Pull Image from docker hub
+      run: docker pull renatokazinczi/appointment-system:latest
+    - name: Delete old container
+      run: docker rm -f appointment-system-container
+    - name: Run docker container
+      run: docker run -d -p 8080:8080 --name appointment-system renatokazinczi/appointment-system
