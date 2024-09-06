@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: [ubuntu-latest]
+    environment:
+      name: dev
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
@@ -16,7 +18,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - name: Build Project
-        run: mvn clean install -DskipTests
+        run: mvn clean install -DskipTests -DDB_USER=${{secrets.DB_USER}} -DDB_PASSWORD=${{secrets.DB_PASSWORD}}
       - name: Login to docker hub
         run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
       - name: Build docker image
@@ -27,6 +29,8 @@ jobs:
   deploy:
     needs: build
     runs-on: [appointment-system-ec2]
+    environment:
+      name: dev
     steps:
     - name: Bump Version
       id: bump
