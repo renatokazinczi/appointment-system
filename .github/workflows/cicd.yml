@@ -40,6 +40,6 @@ jobs:
     - name: Pull Image from docker hub
       run: docker pull renatokazinczi/appointment-system:latest
     - name: Delete old container
-      run: docker rm -f appointment-system-container
+      run: docker rm -f appointment-system
     - name: Run docker container
       run: docker run -d -p 8080:8080 --name appointment-system renatokazinczi/appointment-system
