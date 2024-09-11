@@ -3,6 +3,14 @@ name: CICD
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      auto-version-bump:
+        description: 'Should we bump the version?'
+        required: true
+        default: 'false'
+      tags:
+        description: 'Tags'
 
 env:
   RDS_USER: '${{ secrets.RDS_USER }}'
@@ -38,13 +46,6 @@ jobs:
     environment:
       name: dev
     steps:
-    - name: Bump Version
-      id: bump
-      uses: nnichols/maven-version-bump-action@v3
-      with:
-        github-token: ${{ secrets.DEPLOY_TOKEN }}
-    - name: Print Version
-      run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
     - name: Login to docker hub
       run: docker login -u ${{secrets.DOCKER_USERNAME}} -p ${{secrets.DOCKER_PASSWORD}}
     - name: Pull Image from docker hub
@@ -53,3 +54,12 @@ jobs:
       run: docker rm -f appointment-system
     - name: Run docker container
       run: docker run -d -p 8080:8080 --name appointment-system renatokazinczi/appointment-system
+    - name: Bump Version
+      id: bump
+      uses: Plugily-Projects/version-bump-action@v6
+      with:
+        github-token: ${{ secrets.DEPLOY_TOKEN }}
+        git-committer: 'BOT'
+        auto-version-bump: true
+    - name: Print Version
+      run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
