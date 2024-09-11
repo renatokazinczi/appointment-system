@@ -26,6 +26,15 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
+      - name: Bump Version
+        id: bump
+        uses: Plugily-Projects/version-bump-action@v6
+        with:
+          github-token: ${{ secrets.DEPLOY_TOKEN }}
+          git-committer: 'BOT'
+          auto-version-bump: true
+      - name: Print Version
+        run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -54,12 +63,3 @@ jobs:
       run: docker rm -f appointment-system
     - name: Run docker container
       run: docker run -d -p 8080:8080 --name appointment-system renatokazinczi/appointment-system
-    - name: Bump Version
-      id: bump
-      uses: Plugily-Projects/version-bump-action@v6
-      with:
-        github-token: ${{ secrets.DEPLOY_TOKEN }}
-        git-committer: 'BOT'
-        auto-version-bump: true
-    - name: Print Version
-      run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
